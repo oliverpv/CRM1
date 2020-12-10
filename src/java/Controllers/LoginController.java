@@ -1,0 +1,170 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Controllers;
+
+import Models.clsLogin;
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author paola
+ */
+@WebServlet(name = "LoginController", urlPatterns = {"/LoginController"})
+public class LoginController extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        if (request.getParameter("btnAutenticar") != null) {
+            btnAutenticar(request, response);
+        } else if (request.getParameter("btnRegistrar") != null) {
+            btnRegistrar(request, response);
+        }
+
+    }
+
+    public void btnRegistrar(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String stMensaje = "";
+            if (request.getParameter("txtEmail") == null) {
+                stMensaje += "Ingrese Email,";
+            }
+            if (request.getParameter("txtPassword") == null) {
+                stMensaje += "Ingrese Password, ";
+            }
+            if (request.getParameter("txtConfirmarPassword") == null) {
+                stMensaje += "Ingrese Password de confirmación,";
+            }
+            if (request.getParameter("txtPassword") != null && request.getParameter("txtConfirmarPassword") != null) {
+                if (!request.getParameter("txtPassword").equals(request.getParameter("txtConfirmarPassword"))) {
+                    stMensaje += "El Password ingresado no coincide con la confirmación,";
+                }
+            }
+
+            if (!stMensaje.equals("")) {
+                throw new Exception(stMensaje.substring(0, stMensaje.length() - 1));
+            }
+
+            BL.clsLogin obclsLogin = new BL.clsLogin();
+            Models.clsLogin obclsLoginModel = new Models.clsLogin();
+
+            obclsLoginModel.setStEmail(request.getParameter("txtEmail"));
+            obclsLoginModel.setStPassword(request.getParameter("txtPassword"));
+
+            if (!obclsLogin.addUsuario(obclsLoginModel).equals("OK")) {
+                throw new Exception("Se produjo un error durante el procedimineot");
+            }
+            else {
+            request.setAttribute("stMensaje", "Se realizo proceso con exito.");
+            request.setAttribute("stTipo", "success");
+            request.getRequestDispatcher("Registrar.jsp").forward(request, response);
+            }
+
+        } catch (Exception e) {
+            request.setAttribute("stMensaje", e.getMessage());
+            request.setAttribute("stTipo", "error");
+            request.getRequestDispatcher("Registrar.jsp").forward(request, response);
+        }
+    }
+
+    public void btnAutenticar(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String stMensaje = "";
+            if (request.getParameter("txtEmail").equals("")) {
+                stMensaje += "Ingrese Email, ";
+            }
+            if (request.getParameter("txtPassword").equals("")) {
+                stMensaje += "Ingrese Password,";
+            }
+
+            if (!stMensaje.equals("")) {
+                throw new Exception(stMensaje.substring(0, stMensaje.length() - 1));
+            }
+            //Instanciando el objeto
+            Models.clsLogin obclsLogin = new Models.clsLogin();
+
+            //Asignando las propiedades
+            obclsLogin.setStEmail(request.getParameter("txtEmail").toString());
+            obclsLogin.setStPassword(request.getParameter("txtPassword").toString());
+
+            //Instanciando el objeto
+            BL.clsLogin obBLclsLogin = new BL.clsLogin();
+
+            //Invocando el metodo validarLogin
+            boolean blBandera = obBLclsLogin.validarLogin(obclsLogin);
+
+            if (blBandera) {
+                //Direcionamiento al JSP
+                request.getRequestDispatcher("Index.jsp").forward(request, response);
+            } else {
+                throw new Exception("Email o Password incorrectos");
+            }
+
+        } catch (Exception e) {
+            //Envio de parametros o valores
+            request.setAttribute("stError", e.getMessage());
+            //Direcionamiento al JSP
+            request.getRequestDispatcher("Login.jsp").forward(request, response);
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
